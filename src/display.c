@@ -59,7 +59,7 @@ void draw_grid() {
   for (int y = 0; y < window_height; y += grid_scale) {
     for (int x = 0; x < window_width; x += grid_scale) {
 
-      color_buffer[(window_width * y) + x] = 0x50333333;
+      color_buffer[(window_width * y) + x] = 0xFF3300FF;
     }
   }
 };

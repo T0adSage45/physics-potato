@@ -1,5 +1,7 @@
 #include "display.h"
 #include "vector.h"
+#include <stdint.h>
+#include <stdio.h>
 
 #define GRID_SIZE_X 9
 #define GRID_SIZE_Y 9
