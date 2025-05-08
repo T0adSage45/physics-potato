@@ -76,25 +76,6 @@ void draw_rect(int x, int y, int width, int height, uint32_t color) {
   }
 };
 
-// void draw_line(int x, int y, int x1, int y1, uint32_t color) {
-//   int delta_x = x1 - x;
-//   int delta_y = y1 - y;
-//
-//   int longest_side =
-//       (abs(delta_x) >= abs(delta_y)) ? abs(delta_x) : abs(delta_y);
-//
-//   float Xinc = (float)delta_x / longest_side;
-//   float Yinc = (float)delta_y / longest_side;
-//
-//   int current_x = x;
-//   int current_y = y;
-//   for (int i = 0; i <= longest_side; i++) {
-//     draw_pixel(round(current_x), round(current_y), color);
-//     current_x += Xinc;
-//     current_y += Yinc;
-//   }
-// };
-
 void draw_triangle(int x0, int y0, int x1, int y1, int x2, int y2,
                    uint32_t color) {
   draw_line(x0, y0, x1, y1, color);
@@ -138,7 +119,6 @@ void render_color_buffer() {
 };
 
 void destroy_window(void) {
-  free(color_buffer);
   SDL_DestroyWindow(window);
   SDL_DestroyRenderer(renderer);
   SDL_Quit();
