@@ -83,9 +83,9 @@ void update(void) {
     face_t current_mesh_face = mesh_faces[i];
     vec3_t face_vertices[3];
 
-    face_vertices[0] = mesh_vertices[current_mesh_face.a];
-    face_vertices[1] = mesh_vertices[current_mesh_face.b];
-    face_vertices[2] = mesh_vertices[current_mesh_face.c];
+    face_vertices[0] = mesh_vertices[current_mesh_face.a - 1];
+    face_vertices[1] = mesh_vertices[current_mesh_face.b - 1];
+    face_vertices[2] = mesh_vertices[current_mesh_face.c - 1];
 
     triangle_t projected_triangle;
 
@@ -110,17 +110,17 @@ void update(void) {
 }
 
 void render(void) {
-  // draw_grid();
+  draw_grid();
 
   for (int i = 0; i < N_MESH_FACES; i++) {
     triangle_t triangle = triangle_to_render[i];
-    draw_rect(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFFFF00FF);
-    draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFFFF00FF);
-    draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFFFF00FF);
+    draw_rect(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFFFF0000);
+    draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFF0000FF);
+    draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFF00FFFF);
 
     draw_triangle(triangle.points[0].x, triangle.points[0].y,
                   triangle.points[1].x, triangle.points[1].y,
-                  triangle.points[2].x, triangle.points[2].y, 0xFF00FF00);
+                  triangle.points[2].x, triangle.points[2].y, 0xFFFFFF00);
   }
 
   render_color_buffer();
