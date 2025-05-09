@@ -50,7 +50,7 @@ void load_obj_mesh_data(char *filename) {
     return;
   }
 
-  char line[6024];
+  char line[1024];
   while (fgets(line, sizeof(line), file) != NULL) {
     if (strncmp(line, "v ", 2) == 0) {
       vec3_t vertex;

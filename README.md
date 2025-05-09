@@ -2,6 +2,18 @@
 
 ### a 3d render built in c using only stdlib + sdl(for multiple system suppourt)
 
+## here's how it looks.
+![pic](/assets/1.png)
+
+
+### Install nix then:
+```
+    cd psychic-potato
+    nix develop
+
+```
+### Using bear in nixos to define paths:
+
 ```
  bear -- gcc -I/nix/store/pz6jgrfqyl2il2785a75vmwdp9vypv0j-glibc-2.40-66-dev/include -c -o main.o main.c
 ```
