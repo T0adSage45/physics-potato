@@ -14,7 +14,7 @@ triangle_t *triangle_to_render = NULL;
 
 vec3_t camera_position = {.x = 0, .y = 0, .z = -5};
 
-float POV = 640;
+float POV = 1040;
 int prev_frame_time = 0;
 
 bool is_running = false;
@@ -30,7 +30,7 @@ void setup(void) {
   color_buffer_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                                            SDL_TEXTUREACCESS_STREAMING,
                                            window_width, window_height);
-  load_cube_mesh_data();
+  load_obj_mesh_data("./assets/f22.obj");
 }
 
 void process_input(void) {
@@ -80,8 +80,8 @@ void update(void) {
   triangle_to_render = NULL;
 
   mesh.rotation.x += 0.01;
-  mesh.rotation.y += 0.01;
-  mesh.rotation.z += 0.01;
+  mesh.rotation.y += 0.001;
+  mesh.rotation.z += 0.005;
 
   int N_FACES = array_length(mesh.faces);
   for (int i = 0; i < N_FACES; i++) {
@@ -127,7 +127,7 @@ void render(void) {
 
     draw_triangle(triangle.points[0].x, triangle.points[0].y,
                   triangle.points[1].x, triangle.points[1].y,
-                  triangle.points[2].x, triangle.points[2].y, 0x50FF00EE);
+                  triangle.points[2].x, triangle.points[2].y, 0xFFFFFFFF);
   }
 
   array_free(triangle_to_render);

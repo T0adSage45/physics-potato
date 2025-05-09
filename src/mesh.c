@@ -1,8 +1,9 @@
 #include "mesh.h"
-#include "SDL2/SDL_platform.h"
 #include "array.h"
+#include "triangle.h"
 #include "vector.h"
-#include "wchar.h"
+#include <stdio.h>
+#include <string.h>
 
 mesh_t mesh = {
     .vertices = NULL,
@@ -40,4 +41,38 @@ void load_cube_mesh_data(void) {
     face_t cube_face = cube_faces[i];
     array_push(mesh.faces, cube_face);
   }
+};
+
+void load_obj_mesh_data(char *filename) {
+  FILE *file = fopen(filename, "r");
+  if (file == NULL) {
+    perror("Unable to open file!");
+    return;
+  }
+
+  char line[6024];
+  while (fgets(line, sizeof(line), file) != NULL) {
+    if (strncmp(line, "v ", 2) == 0) {
+      vec3_t vertex;
+      sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
+      array_push(mesh.vertices, vertex);
+    }
+
+    else if (strncmp(line, "f ", 2) == 0) {
+      int vertex_indices[3];
+
+      int matched =
+          sscanf(line, "f %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d", &vertex_indices[0],
+                 &vertex_indices[1], &vertex_indices[2]);
+
+      if (matched == 3) {
+        face_t face = {.a = vertex_indices[0],
+                       .b = vertex_indices[1],
+                       .c = vertex_indices[2]};
+        array_push(mesh.faces, face);
+      }
+    }
+  }
+
+  fclose(file);
 }
