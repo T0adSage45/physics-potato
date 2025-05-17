@@ -35,6 +35,8 @@
           shellHook = ''
             echo "🧪 Entering C development shell with SDL2 support!"
             echo "📦 SDL2 version: ${pkgs.SDL2.version}"
+            export SHELL=$(which zsh)
+            exec $SHELL
           '';
         };
       }

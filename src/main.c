@@ -1,4 +1,3 @@
-#include "SDL2/SDL_platform.h"
 #include "SDL2/SDL_timer.h"
 #include "array.h"
 #include "display.h"
@@ -12,7 +11,7 @@
 
 triangle_t *triangle_to_render = NULL;
 
-vec3_t camera_position = {.x = 0, .y = 0, .z = -5};
+vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
 
 float POV = 1040;
 int prev_frame_time = 0;
@@ -94,6 +93,8 @@ void update(void) {
 
     triangle_t projected_triangle;
 
+    vec3_t transformed_vertices[3];
+
     for (int j = 0; j < 3; j++) {
       vec3_t transformed_vertex = face_vertices[j];
 
@@ -102,14 +103,34 @@ void update(void) {
       transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
 
       // translate forward so cube is in front of camera
-      transformed_vertex.z -= camera_position.z;
+      transformed_vertex.z += -10;
 
-      vec2_t projected_point = project(transformed_vertex);
+      transformed_vertices[j] = transformed_vertex;
+    };
+
+    vec3_t vector_a = transformed_vertices[0];
+    vec3_t vector_b = transformed_vertices[1];
+    vec3_t vector_c = transformed_vertices[2];
+
+    vec3_t vector_ab = vec3_sub(vector_b, vector_a);
+    vec3_t vector_ac = vec3_sub(vector_c, vector_a);
+
+    vec3_t normal = vec3_norm(vector_ab, vector_ac);
+
+    vec3_t cam_ray = vec3_sub(camera_position, vector_a);
+
+    float allingment = vec3_dot(cam_ray, normal);
+
+    if (allingment <= 0) {
+      continue;
+    }
+
+    for (int j = 0; j < 3; j++) {
+      vec2_t projected_point = project(transformed_vertices[j]);
       projected_point.x += (window_width / 2);
       projected_point.y += (window_height / 2);
       projected_triangle.points[j] = projected_point;
-    }
-
+    };
     // triangle_to_render[i] = projected_triangle;
     array_push(triangle_to_render, projected_triangle);
   }
