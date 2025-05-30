@@ -2,7 +2,9 @@
 
 ### a 3d render built in c using only stdlib + sdl(for multiple system suppourt)
 
+
 ## here's how it looks.
+![pic](/assets/2.png)
 ![pic](/assets/1.png)
 
 

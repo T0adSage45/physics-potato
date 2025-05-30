@@ -80,3 +80,11 @@ vec3_t vec3_rotate_z(vec3_t v, float angle) {
   };
   return rotated_vector;
 };
+
+void vec3_normalize(vec3_t* v){
+    float len = sqrt(v->x*v->x+v->y*v->y+v->z*v->z);
+    v->x/=len;
+    v->y/=len;
+    v->z/=len;
+};
+

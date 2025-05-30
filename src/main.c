@@ -13,10 +13,11 @@ triangle_t *triangle_to_render = NULL;
 
 vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
 
-float POV = 1040;
+float POV = 1680;
 int prev_frame_time = 0;
 
 bool is_running = false;
+float grid_scale = 1;
 
 void setup(void) {
   color_buffer =
@@ -49,13 +50,13 @@ void process_input(void) {
       else if ((event.key.keysym.sym == SDLK_EQUALS ||
                 event.key.keysym.sym == SDLK_PLUS) &&
                (event.key.keysym.mod & KMOD_CTRL)) {
-        grid_scale += 10;
+        grid_scale += .5;
       }
 
       // Detect CTRL + MINUS
       else if (event.key.keysym.sym == SDLK_MINUS &&
                (event.key.keysym.mod & KMOD_CTRL)) {
-        grid_scale -= 10;
+        grid_scale -= .5;
       }
       break;
     }
@@ -114,8 +115,12 @@ void update(void) {
 
     vec3_t vector_ab = vec3_sub(vector_b, vector_a);
     vec3_t vector_ac = vec3_sub(vector_c, vector_a);
+    vec3_normalize(&vector_ab);
+    vec3_normalize(&vector_ac);
 
     vec3_t normal = vec3_norm(vector_ab, vector_ac);
+
+    vec3_normalize(&normal);
 
     vec3_t cam_ray = vec3_sub(camera_position, vector_a);
 
@@ -137,18 +142,23 @@ void update(void) {
 }
 
 void render(void) {
-  draw_grid();
+  // draw_grid(grid_scale, 0xFF00FFFF);
 
   int N_TRIANGLES = array_length(triangle_to_render);
   for (int i = 0; i < N_TRIANGLES; i++) {
     triangle_t triangle = triangle_to_render[i];
-    draw_rect(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFFFF0000);
-    draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFF0000FF);
-    draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFF00FFFF);
+    // draw_rect(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFFFF0000);
+    // draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFF0000FF);
+    // draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFF00FFFF);
 
     draw_triangle(triangle.points[0].x, triangle.points[0].y,
                   triangle.points[1].x, triangle.points[1].y,
-                  triangle.points[2].x, triangle.points[2].y, 0xFFFFFFFF);
+                  triangle.points[2].x, triangle.points[2].y, 0xFF000095);
+
+    draw_filled_triangle(triangle.points[0].x, triangle.points[0].y,
+                         triangle.points[1].x, triangle.points[1].y,
+                         triangle.points[2].x, triangle.points[2].y,
+                         0xFFFFFFFF);
   }
 
   array_free(triangle_to_render);

@@ -7,7 +7,6 @@ SDL_Texture *color_buffer_texture = NULL;
 uint32_t *color_buffer = NULL; // declaration of first element of memory.
 int window_width = 800;
 int window_height = 600;
-int grid_scale = 25;
 
 bool initalize_window(void) {
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -47,19 +46,15 @@ void clear_color_buffer(uint32_t color) {
   }
 };
 
-void draw_grid() {
-  if (grid_scale < 10) {
-    grid_scale = 10;
+void draw_grid(float grid_scale, uint32_t color) {
+  if (grid_scale < 0) {
+    grid_scale = 1;
   }
-
-  if (grid_scale > 100) {
-    grid_scale = 100;
-  }
-
   for (int y = 0; y < window_height; y += grid_scale) {
     for (int x = 0; x < window_width; x += grid_scale) {
 
-      color_buffer[(window_width * y) + x] = 0xFF3300FF;
+      draw_pixel(x, y, color);
+      // color_buffer[(window_width * y) + x] = color;
     }
   }
 };
