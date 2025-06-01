@@ -7,11 +7,10 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      flake-utils,
-      ...
+    { self
+    , nixpkgs
+    , flake-utils
+    , ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -30,6 +29,7 @@
             SDL2_mixer # sound/music
             SDL2_ttf # TrueType font support
             pkg-config # for compiling/linking easily
+            bear
           ];
 
           shellHook = ''

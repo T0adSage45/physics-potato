@@ -34,13 +34,18 @@ vec3_t vec3_mul(vec3_t a, float scaler) {
 };
 
 vec2_t vec2_div(vec2_t a, float scaler) {
-  vec2_t result = {.x = a.x / scaler, .y = a.y / scaler};
-  return result;
+  if (scaler != 0.0f) {
+    vec2_t result = {.x = a.x / scaler, .y = a.y / scaler};
+    return result;
+  }
+  return (vec2_t){0, 0};
 };
 
 vec3_t vec3_div(vec3_t a, float scaler) {
-  vec3_t result = {.x = a.x / scaler, .y = a.y / scaler, .z = a.z / scaler};
-  return result;
+  if (scaler == 0.0f) {
+    return (vec3_t){0, 0, 0};
+  }
+  return (vec3_t){.x = a.x / scaler, .y = a.y / scaler, .z = a.z / scaler};
 };
 
 vec3_t vec3_norm(vec3_t a, vec3_t b) {
@@ -81,10 +86,11 @@ vec3_t vec3_rotate_z(vec3_t v, float angle) {
   return rotated_vector;
 };
 
-void vec3_normalize(vec3_t* v){
-    float len = sqrt(v->x*v->x+v->y*v->y+v->z*v->z);
-    v->x/=len;
-    v->y/=len;
-    v->z/=len;
+void vec3_normalize(vec3_t *v) {
+  float len = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
+  if (len == 0.0f)
+    return;
+  v->x /= len;
+  v->y /= len;
+  v->z /= len;
 };
-

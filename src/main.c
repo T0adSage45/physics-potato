@@ -67,7 +67,7 @@ vec2_t project(vec3_t point) {
   vec2_t projected_point = {.x = (point.x * POV) / point.z,
                             .y = (point.y * POV) / point.z};
   return projected_point;
-}
+};
 
 void update(void) {
   int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - prev_frame_time);
@@ -158,7 +158,7 @@ void render(void) {
     draw_filled_triangle(triangle.points[0].x, triangle.points[0].y,
                          triangle.points[1].x, triangle.points[1].y,
                          triangle.points[2].x, triangle.points[2].y,
-                         0xFFFFFFFF);
+                         0xFF909090);
   }
 
   array_free(triangle_to_render);
