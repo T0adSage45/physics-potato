@@ -69,3 +69,45 @@ mat4_t mat4_rotate_z(float angle) {
   m.m[1][1] = c;
   return m;
 };
+mat4_t mat4_mul_mat4(mat4_t m0, mat4_t m1) {
+  mat4_t m;
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      m.m[i][j] = m0.m[i][0] * m1.m[0][j] + m0.m[i][1] * m1.m[1][j] +
+                  m0.m[i][2] * m1.m[2][j] + m0.m[i][3] * m1.m[3][j];
+    }
+  }
+  return m;
+};
+
+mat4_t mat4_world_matrix(mat4_t Sm, mat4_t R_xm, mat4_t R_ym, mat4_t R_zm,
+                         mat4_t Tm) {
+  mat4_t m = mat4_EYE();
+  m = mat4_mul_mat4(Sm, m);
+  m = mat4_mul_mat4(R_xm, m);
+  m = mat4_mul_mat4(R_ym, m);
+  m = mat4_mul_mat4(R_zm, m);
+  m = mat4_mul_mat4(Tm, m);
+  return m;
+};
+
+mat4_t mat4_perspective(float fov, float aspect, float znear, float zfar) {
+  mat4_t m = {{{0}}};
+  m.m[0][0] = aspect * (1 / tan(fov / 2));
+  m.m[1][1] = 1 / tan(fov / 2);
+  m.m[2][2] = zfar / (zfar - znear);
+  m.m[2][3] = (-zfar * znear) / (zfar - znear);
+  m.m[3][2] = 1.0;
+  return m;
+};
+
+vec4_t mat4_mul_vec4_project(mat4_t mat_proj, vec4_t v) {
+  vec4_t result = mat4_mul_vec4(mat_proj, v);
+  if (result.w != 0.00) {
+    result.x /= result.w;
+    result.y /= result.w;
+    result.z /= result.w;
+    return result;
+  };
+  return result;
+};

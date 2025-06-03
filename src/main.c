@@ -2,6 +2,7 @@
 #include "SDL2/SDL_timer.h"
 #include "array.h"
 #include "display.h"
+#include "math.h"
 #include "matrices.h"
 #include "mesh.h"
 #include "triangle.h"
@@ -15,11 +16,12 @@ triangle_t *triangle_to_render = NULL;
 
 vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
 
-float POV = 1680;
 int prev_frame_time = 0;
+mat4_t proj_matrix;
 
 bool is_running = false;
 float grid_scale = 1;
+double PI = 3.141592;
 
 enum render_method render_method = RENDER_WIRE;
 enum cull_method cull_method = CULL_BACKFACE;
@@ -36,6 +38,11 @@ void setup(void) {
   color_buffer_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                                            SDL_TEXTUREACCESS_STREAMING,
                                            window_width, window_height);
+  float FOV = PI / 3;
+  float ASPECT = (float)window_height / (float)window_width;
+  float ZNEAR = 0.1;
+  float ZFAR = 100.0;
+  proj_matrix = mat4_perspective(FOV, ASPECT, ZNEAR, ZFAR);
   load_obj_mesh_data("./assets/f22.obj");
   // load_cube_mesh_data();
 }
@@ -76,11 +83,11 @@ void process_input(void) {
   }
 }
 
-vec2_t project(vec3_t point) {
-  vec2_t projected_point = {.x = (point.x * POV) / point.z,
-                            .y = (point.y * POV) / point.z};
-  return projected_point;
-};
+// vec2_t project(vec3_t point) {
+//   vec2_t projected_point = {.x = (point.x * POV) / point.z,
+//                             .y = (point.y * POV) / point.z};
+//   return projected_point;
+// };
 
 void update(void) {
   int time_to_wait = FRAME_TARGET_TIME - (SDL_GetTicks() - prev_frame_time);
@@ -92,24 +99,25 @@ void update(void) {
 
   triangle_to_render = NULL;
 
-  mesh.rotation.x += 0.01;
-  mesh.rotation.y += 0.001;
-  mesh.rotation.z += 0.005;
-  // mesh.scale.x += 0.002;
-  // mesh.scale.y += 0.001;
-  // mesh.scale.z += 0.005;
-  mesh.translation.x = 0;
-  mesh.translation.y = 0;
+  mesh.rotation.x += 0.0041;
+  mesh.rotation.y += 0.0041;
+  mesh.rotation.z += 0.009;
+  mesh.scale.x += 0.000;
+  mesh.scale.y += 0.000;
+  mesh.scale.z += 0.000;
+  mesh.translation.x += 0.005;
+  mesh.translation.y += 0.000;
   mesh.translation.z = -10;
 
   mat4_t scale_matrix =
       mat4_scale_vec3(mesh.scale.x, mesh.scale.y, mesh.scale.z);
-
-  mat4_t translate_matrix = mat4_tranlate_vec3(
-      mesh.translation.x, mesh.translation.y, mesh.translation.z);
   mat4_t rotate_x = mat4_rotate_x(mesh.rotation.x);
   mat4_t rotate_y = mat4_rotate_y(mesh.rotation.y);
   mat4_t rotate_z = mat4_rotate_z(mesh.rotation.z);
+  mat4_t translate_matrix = mat4_tranlate_vec3(
+      mesh.translation.x, mesh.translation.y, mesh.translation.z);
+  mat4_t world_matrix = mat4_world_matrix(scale_matrix, rotate_x, rotate_y,
+                                          rotate_z, translate_matrix);
 
   int N_FACES = array_length(mesh.faces);
   for (int i = 0; i < N_FACES; i++) {
@@ -125,17 +133,16 @@ void update(void) {
     for (int j = 0; j < 3; j++) {
       vec4_t transformed_vertex = vec3_to_vec4(face_vertices[j]);
 
-      transformed_vertex = mat4_mul_vec4(scale_matrix, transformed_vertex);
-      transformed_vertex = mat4_mul_vec4(rotate_x, transformed_vertex);
-      transformed_vertex = mat4_mul_vec4(rotate_y, transformed_vertex);
-      transformed_vertex = mat4_mul_vec4(rotate_z, transformed_vertex);
-      transformed_vertex = mat4_mul_vec4(translate_matrix, transformed_vertex);
+      // mat4_t world_matrix = mat4_world_matrix(scale_matrix, rotate_x,
+      // rotate_y,rotate_z, translate_matrix);
+
+      transformed_vertex = mat4_mul_vec4(world_matrix, transformed_vertex);
 
       // transformed_vertex = vec3_rotate_x(transformed_vertex,
       // mesh.rotation.x); transformed_vertex =
-      // vec3_rotate_y(transformed_vertex, mesh.rotation.y); transformed_vertex
-      // = vec3_rotate_z(transformed_vertex, mesh.rotation.z); translate forward
-      // so cube is in front of camera
+      // vec3_rotate_y(transformed_vertex, mesh.rotation.y);
+      // transformed_vertex = vec3_rotate_z(transformed_vertex,
+      // mesh.rotation.z); translate forward so cube is in front of camera
 
       transformed_vertices[j] = transformed_vertex;
     };
@@ -168,12 +175,16 @@ void update(void) {
                        transformed_vertices[2].z) /
                       3.0;
 
-    vec2_t projected_points[3];
+    vec4_t projected_points[3];
 
     for (int j = 0; j < 3; j++) {
-      projected_points[j] = project(vec4_to_vec3(transformed_vertices[j]));
-      projected_points[j].x += (window_width / 2);
-      projected_points[j].y += (window_height / 2);
+      // projected_points[j] = project(vec4_to_vec3(transformed_vertices[j]));
+      projected_points[j] =
+          mat4_mul_vec4_project(proj_matrix, transformed_vertices[j]);
+      projected_points[j].x *= (window_width / 2.0);
+      projected_points[j].y *= (window_height / 2.0);
+      projected_points[j].x += (window_width / 2.0);
+      projected_points[j].y += (window_height / 2.0);
     };
     triangle_t projected_triangle = {
         .points =
