@@ -47,5 +47,7 @@ void vec3_normalize(vec3_t *v);
 
 vec4_t vec3_to_vec4(vec3_t v);
 vec3_t vec4_to_vec3(vec4_t v);
+vec2_t vec4_to_vec2(vec4_t v);
 
 #endif
+

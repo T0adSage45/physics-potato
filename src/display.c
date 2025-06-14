@@ -1,5 +1,4 @@
 #include "display.h"
-#include <stdint.h>
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
@@ -33,7 +32,6 @@ bool initalize_window(void) {
     fprintf(stderr, "Error Creating the SDL renderer. \n");
     return false;
   }
-  SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
   return true;
 }
 
@@ -54,7 +52,6 @@ void draw_grid(float grid_scale, color_t color) {
     for (int x = 0; x < window_width; x += grid_scale) {
 
       draw_pixel(x, y, color);
-      // color_buffer[(window_width * y) + x] = color;
     }
   }
 };
@@ -65,21 +62,15 @@ void draw_rect(int x, int y, int width, int height, color_t color) {
       int current_x = x + i;
       int current_y = y + j;
       draw_pixel(current_x, current_y, color);
-      // color_buffer[(window_width * current_y) + current_x] = color;
     }
   }
 };
 
-void draw_triangle(int x0, int y0, int x1, int y1, int x2, int y2,
-                   color_t color) {
-  draw_line(x0, y0, x1, y1, color);
-  draw_line(x1, y1, x2, y2, color);
-  draw_line(x2, y2, x0, y0, color);
-};
-
 void draw_line(int x0, int y0, int x1, int y1, color_t color) {
+
   int dx = abs(x1 - x0);
   int dy = abs(y1 - y0);
+
   int sx = (x0 < x1) ? 1 : -1;
   int sy = (y0 < y1) ? 1 : -1;
   int err = dx - dy;
@@ -101,7 +92,7 @@ void draw_line(int x0, int y0, int x1, int y1, color_t color) {
 };
 
 void draw_pixel(int x, int y, color_t color) {
-  if (x >= 0 && x < window_width && y >= 0 && y <= window_height) {
+  if (x >= 0 && x < window_width && y >= 0 && y < window_height) {
     color_buffer[(window_width * y) + x] = color;
   }
 };
@@ -113,7 +104,7 @@ void render_color_buffer() {
 };
 
 void destroy_window(void) {
-  SDL_DestroyWindow(window);
   SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
   SDL_Quit();
 };
