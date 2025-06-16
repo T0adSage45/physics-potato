@@ -8,6 +8,7 @@
 #include "metrices.h"
 #include "texture.h"
 #include "triangle.h"
+#include "upng.h"
 #include "vector.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -49,21 +50,24 @@ void setup(void) {
     return;
   }
 
-  color_buffer_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+  color_buffer_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32,
                                            SDL_TEXTUREACCESS_STREAMING,
                                            window_width, window_height);
+  z_buffer = (float *)malloc(sizeof(float) * window_width * window_height);
   float FOV = PI / 3;
   float ASPECT = (float)window_height / (float)window_width;
   float ZNEAR = 0.1;
   float ZFAR = 100.0;
   proj_matrix = mat4_perspective(FOV, ASPECT, ZNEAR, ZFAR);
 
-  mesh_texture = (color_t *)REDBRICK_TEXTURE;
-  texture_height = 64;
-  texture_width = 64;
+  // mesh_texture = (color_t *)REDBRICK_TEXTURE;
+  // texture_height = 64;
+  // texture_width = 64;
 
   load_obj_mesh_data("./assets/f22.obj");
   // load_cube_mesh_data();
+
+  load_texture_data("./assets/f22.png");
 }
 
 void process_input(void) {
@@ -112,9 +116,9 @@ void update(void) {
 
   triangle_to_render = NULL;
 
-  mesh.rotation.x += 0.0041;
+  mesh.rotation.x = 0.5;
   mesh.rotation.y += 0.004;
-  mesh.rotation.z += 0.006;
+  // mesh.rotation.z += 0.006;
   mesh.scale.x = 1;
   mesh.scale.y = 1;
   mesh.scale.z = 1;
@@ -132,9 +136,9 @@ void update(void) {
   for (int i = 0; i < N_FACES; i++) {
     face_t current_mesh_face = mesh.faces[i];
     vec3_t face_vertices[3];
-    face_vertices[0] = mesh.vertices[current_mesh_face.a - 1];
-    face_vertices[1] = mesh.vertices[current_mesh_face.b - 1];
-    face_vertices[2] = mesh.vertices[current_mesh_face.c - 1];
+    face_vertices[0] = mesh.vertices[current_mesh_face.a];
+    face_vertices[1] = mesh.vertices[current_mesh_face.b];
+    face_vertices[2] = mesh.vertices[current_mesh_face.c];
 
     vec4_t transformed_vertices[3];
 
@@ -283,11 +287,14 @@ void render(void) {
   array_free(triangle_to_render);
   render_color_buffer();
   clear_color_buffer(0xFF000000);
+  clear_z_buffer();
   SDL_RenderPresent(renderer);
 }
 
 void free_resources(void) {
   free(color_buffer);
+  free(z_buffer);
+  upng_free(png_texture);
   array_free(mesh.faces);
   array_free(mesh.vertices);
 };

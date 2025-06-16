@@ -1,5 +1,6 @@
 #include "mesh.h"
 #include "array.h"
+#include "texture.h"
 #include "triangle.h"
 #include "vector.h"
 #include <stdio.h>
@@ -29,7 +30,7 @@ face_t cube_faces[N_CUBE_FACES] = {
      .a_uv = {0, 1},
      .b_uv = {0, 0},
      .c_uv = {1, 0},
-     .color = 0xFFFFFFFF},
+     .color = 0x00FFFFFF},
     {.a = 1,
      .b = 3,
      .c = 4,
@@ -129,6 +130,7 @@ void load_obj_mesh_data(char *filename) {
   if (!file)
     perror("file failed to open");
   char line[1024];
+  tex2_t *tex_coords = NULL;
 
   while (fgets(line, 1024, file)) {
     // Vertex information
@@ -136,6 +138,11 @@ void load_obj_mesh_data(char *filename) {
       vec3_t vertex;
       sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
       array_push(mesh.vertices, vertex);
+    }
+    if (strncmp(line, "vt ", 3) == 0) {
+      tex2_t tex_coord;
+      sscanf(line, "vt %f %f", &tex_coord.u, &tex_coord.v);
+      array_push(tex_coords, tex_coord)
     }
     // Face information
     if (strncmp(line, "f ", 2) == 0) {
@@ -146,12 +153,16 @@ void load_obj_mesh_data(char *filename) {
              &texture_indices[0], &normal_indices[0], &vertex_indices[1],
              &texture_indices[1], &normal_indices[1], &vertex_indices[2],
              &texture_indices[2], &normal_indices[2]);
-      face_t face = {.a = vertex_indices[0],
-                     .b = vertex_indices[1],
-                     .c = vertex_indices[2],
-                     .color = 0xFFFFFFFF};
+      face_t face = {.a = vertex_indices[0] - 1,
+                     .b = vertex_indices[1] - 1,
+                     .c = vertex_indices[2] - 1,
+                     .a_uv = tex_coords[texture_indices[0] - 1],
+                     .b_uv = tex_coords[texture_indices[1] - 1],
+                     .c_uv = tex_coords[texture_indices[2] - 1],
+                     .color = 0x0000FF00};
       array_push(mesh.faces, face);
     }
   }
+  array_free(tex_coords);
   fclose(file);
 }

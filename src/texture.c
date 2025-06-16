@@ -1,12 +1,14 @@
 #include "texture.h"
 #include "display.h"
 #include "triangle.h"
+#include "upng.h"
 #include "vector.h"
 #include <stdint.h>
 int texture_width = 64;
 int texture_height = 64;
 
 color_t *mesh_texture = NULL;
+upng_t *png_texture = NULL;
 
 void draw_texel(
     int x, int y, color_t *texture,
@@ -37,9 +39,27 @@ void draw_texel(
     interpolated_u /= interpolated_invert_w;
     interpolated_v /= interpolated_invert_w;
 
-    int tex_x = abs((int)(interpolated_u * texture_width));
-    int tex_y = abs((int)(interpolated_v * texture_height));
-    draw_pixel(x, y, texture[(texture_width * tex_y) + tex_x]);
+    int tex_x = abs((int)(interpolated_u * texture_width))% texture_width;
+    int tex_y = abs((int)(interpolated_v * texture_height))% texture_height;
+
+    interpolated_invert_w = 1 - interpolated_invert_w;
+
+    if(interpolated_invert_w < z_buffer[ (window_width * y) + x ]){
+        draw_pixel(x, y, texture[(texture_width * tex_y) + tex_x]);
+        z_buffer[(window_width*y)+x] = interpolated_invert_w;
+    };
+};
+
+void load_texture_data(char* filename){
+png_texture = upng_new_from_file(filename);
+    if (png_texture != NULL){
+        upng_decode(png_texture);
+    if(upng_get_error(png_texture)== UPNG_EOK){
+            mesh_texture = (color_t*)upng_get_buffer(png_texture);
+            texture_width = upng_get_width(png_texture);
+            texture_height = upng_get_height(png_texture);
+        }
+    }
 };
 
 const uint8_t REDBRICK_TEXTURE[] = {
@@ -16427,4 +16447,5 @@ const uint8_t REDBRICK_TEXTURE[] = {
     0x54,
     0x54,
     0xff,
+
 };
