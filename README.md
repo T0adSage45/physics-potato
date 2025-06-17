@@ -1,18 +1,30 @@
-# psychic-potato
+# 🥔 psychic-potato
 
-### a 3d render built in c using only stdlib + sdl(for multiple system suppourt)
+A lightweight 3D software renderer built in **C** using only `stdlib` and `SDL2`.
+Designed to be cross-platform, educational, and deeply hackable.
 
+---
 
-## here's how it looks.
-![pic](/assets/2.png)
-![pic](/assets/1.png)
+## 🌀 Render Previews
 
+<p align="center">
+  <img src="/assets/1.png" width="300"/>
+  <img src="/assets/2.png" width="300"/>
+  <img src="/assets/3.png" width="300"/>
+  <img src="/assets/4.png" width="300"/>
+  <img src="/assets/5.png" width="300"/>
+</p>
 
-### Install nix then:
-```
-    cd psychic-potato
-    nix develop
+---
 
+## ⚙️ Getting Started with Nix
+
+Install [Nix](https://nixos.org/download.html), then enter the dev environment:
+
+```bash
+git clone https://your-repo-url/psychic-potato
+cd psychic-potato
+nix develop
 ```
 ### Using bear in nixos to define paths:
 
