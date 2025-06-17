@@ -12,14 +12,14 @@ mesh_t mesh = {.vertices = NULL,
                .scale = {1.0, 1.0, 1.0},
                .translation = {0, 0, 0}};
 vec3_t cube_vertices[N_CUBE_VERTICES] = {
-    {.x = -1, .y = -1, .z = -1}, // 1
-    {.x = -1, .y = 1, .z = -1},  // 2
-    {.x = 1, .y = 1, .z = -1},   // 3
-    {.x = 1, .y = -1, .z = -1},  // 4
+    {.x = 1, .y = -1, .z = -1},  // 1
+    {.x = 1, .y = -1, .z = 1},   // 2
+    {.x = -1, .y = -1, .z = -1}, // 3
+    {.x = -1, .y = 1, .z = -1},  // 4
     {.x = 1, .y = 1, .z = 1},    // 5
     {.x = 1, .y = -1, .z = 1},   // 6
-    {.x = -1, .y = 1, .z = 1},   // 7
-    {.x = -1, .y = -1, .z = 1}   // 8
+    {.x = -1, .y = 1, .z = -1},  // 7
+    {.x = -1, .y = -1, .z = -1}, // 8
 };
 
 face_t cube_faces[N_CUBE_FACES] = {
@@ -159,7 +159,7 @@ void load_obj_mesh_data(char *filename) {
                      .a_uv = tex_coords[texture_indices[0] - 1],
                      .b_uv = tex_coords[texture_indices[1] - 1],
                      .c_uv = tex_coords[texture_indices[2] - 1],
-                     .color = 0x0000FF00};
+                     .color = 0xFFFFFF45};
       array_push(mesh.faces, face);
     }
   }
