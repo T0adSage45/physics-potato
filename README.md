@@ -8,11 +8,11 @@ Designed to be cross-platform, educational, and deeply hackable.
 ---
 
 ## 🌀 Render Previews
-  <img src="/assets/1.png" width="300"/>
-  <img src="/assets/2.png" width="300"/>
-  <img src="/assets/3.png" width="300"/>
-  <img src="/assets/4.png" width="300"/>
-  <img src="/assets/5.png" width="300"/>
+  <img src="/assets/1.png" width="500"/>
+  <img src="/assets/2.png" width="500"/>
+  <img src="/assets/3.png" width="500"/>
+  <img src="/assets/4.png" width="500"/>
+  <img src="/assets/5.png" width="500"/>
   
 ---
 
