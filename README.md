@@ -1,3 +1,5 @@
+# A learning project ..............
+
 # 🥔 psychic-potato
 
 A lightweight 3D software renderer built in **C** using only `stdlib` and `SDL2`.
@@ -6,15 +8,12 @@ Designed to be cross-platform, educational, and deeply hackable.
 ---
 
 ## 🌀 Render Previews
-
-<p align="center">
   <img src="/assets/1.png" width="300"/>
   <img src="/assets/2.png" width="300"/>
   <img src="/assets/3.png" width="300"/>
   <img src="/assets/4.png" width="300"/>
   <img src="/assets/5.png" width="300"/>
-</p>
-
+  
 ---
 
 ## ⚙️ Getting Started with Nix
