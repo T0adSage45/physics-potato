@@ -110,3 +110,19 @@ vec4_t mat4_mul_vec4_project(mat4_t mat_proj, vec4_t v) {
   };
   return result;
 };
+
+mat4_t mat4_look_at(vec3_t cam_lense, vec3_t target, vec3_t up) {
+  vec3_t z = vec3_sub(target, cam_lense);
+  vec3_normalize(&z);
+  vec3_t x = vec3_norm(up, z);
+  vec3_normalize(&x);
+  vec3_t y = vec3_norm(z, x);
+
+  mat4_t view_matrix = {{
+      {x.x, x.y, x.z, -vec3_dot(x, cam_lense)},
+      {y.x, y.y, y.z, -vec3_dot(y, cam_lense)},
+      {z.x, z.y, z.z, -vec3_dot(z, cam_lense)},
+      {0, 0, 0, 1},
+  }};
+  return view_matrix;
+}

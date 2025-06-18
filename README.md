@@ -13,7 +13,7 @@ Designed to be cross-platform, educational, and deeply hackable.
   <img src="/assets/3.png" width="500"/>
   <img src="/assets/4.png" width="500"/>
   <img src="/assets/5.png" width="500"/>
-  
+
 ---
 
 ## ⚙️ Getting Started with Nix

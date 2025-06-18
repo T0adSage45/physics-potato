@@ -2,6 +2,7 @@
 #include "SDL2/SDL_render.h"
 #include "SDL2/SDL_timer.h"
 #include "array.h"
+#include "camera.h"
 #include "display.h"
 #include "light.h"
 #include "mesh.h"
@@ -15,13 +16,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-triangle_t *triangle_to_render = NULL;
+#define MAX_TRIANGLE_PER_MESH 10000
+triangle_t triangle_to_render[MAX_TRIANGLE_PER_MESH];
+int num_triangles_to_render = 0;
 
 bool is_running = false;
 int prev_frame_time = 0;
-
-vec3_t camera_position = {.x = 0, .y = 0, .z = 0};
+float delta_time = 0;
 mat4_t proj_matrix;
+mat4_t world_matrix;
+mat4_t view_matrix;
 
 float grid_scale = 1;
 double PI = 3.14;
@@ -94,9 +98,22 @@ void process_input(void) {
       render_method = RENDER_TEXTURED_TRIANGLE_WIRE;
     else if (event.key.keysym.sym == SDLK_c)
       cull_method = CULL_BACKFACE;
-    else if (event.key.keysym.sym == SDLK_d)
+    else if (event.key.keysym.sym == SDLK_x)
       cull_method = CULL_NONE;
-    break;
+    else if (event.key.keysym.sym == SDLK_w) {
+      camera.fr_vel = vec3_mul(camera.direction, 5.0 * delta_time);
+      camera.post = vec3_add(camera.post, camera.fr_vel);
+    } else if (event.key.keysym.sym == SDLK_a)
+      camera.yaw += 1.0 * delta_time;
+    else if (event.key.keysym.sym == SDLK_d)
+      camera.yaw -= 1.0 * delta_time;
+    else if (event.key.keysym.sym == SDLK_s) {
+      camera.fr_vel = vec3_mul(camera.direction, 5.0 * delta_time);
+      camera.post = vec3_sub(camera.post, camera.fr_vel);
+    } else if (event.key.keysym.sym == SDLK_UP)
+      camera.post.y -= 3.0 * delta_time;
+    else if (event.key.keysym.sym == SDLK_DOWN)
+      camera.post.y += 3.0 * delta_time;
   }
 }
 
@@ -112,22 +129,37 @@ void update(void) {
     SDL_Delay(time_to_wait);
   }
 
+  delta_time = (SDL_GetTicks() - prev_frame_time) / 1000.0;
+
   prev_frame_time = SDL_GetTicks();
 
-  triangle_to_render = NULL;
+  num_triangles_to_render = 0;
 
-  mesh.rotation.x += 0.005;
-  mesh.rotation.y += 0.004;
-  mesh.rotation.z += 0.006;
-  mesh.scale.x = 1.5;
-  mesh.scale.y = 1.5;
-  mesh.scale.z = 1.5;
-  mesh.translation.z = 5.0;
+  // mesh.rotation.x += 0.6 * delta_time;
+  // mesh.rotation.y += 0.8 * delta_time;
+  // mesh.rotation.z += 0.4 * delta_time;
+  mesh.scale.x = 1;
+  mesh.scale.y = 1;
+  mesh.scale.z = 1;
+  mesh.translation.z = 5;
+
+  vec3_t target = {0, 0, 1};
+
+  mat4_t camera_yaw_rotation = mat4_rotate_y(camera.yaw);
+  camera.direction =
+      vec4_to_vec3(mat4_mul_vec4(camera_yaw_rotation, vec3_to_vec4(target)));
+
+  target = vec3_add(camera.post, camera.direction);
+  vec3_t up_vector = {0, 1, 0};
+
+  view_matrix = mat4_look_at(camera.post, target, up_vector);
 
   mat4_t scale_matrix =
       mat4_scale_vec3(mesh.scale.x, mesh.scale.y, mesh.scale.z);
+
   mat4_t translate_matrix = mat4_tranlate_vec3(
       mesh.translation.x, mesh.translation.y, mesh.translation.z);
+
   mat4_t rotate_x = mat4_rotate_x(mesh.rotation.x);
   mat4_t rotate_y = mat4_rotate_y(mesh.rotation.y);
   mat4_t rotate_z = mat4_rotate_z(mesh.rotation.z);
@@ -147,10 +179,11 @@ void update(void) {
 
       // mat4_t world_matrix = mat4_world_matrix(scale_matrix, rotate_x,
       // rotate_y,rotate_z, translate_matrix);
-      mat4_t world_matrix = mat4_world_matrix(scale_matrix, rotate_x, rotate_y,
-                                              rotate_z, translate_matrix);
+      world_matrix = mat4_world_matrix(scale_matrix, rotate_x, rotate_y,
+                                       rotate_z, translate_matrix);
 
       transformed_vertex = mat4_mul_vec4(world_matrix, transformed_vertex);
+      transformed_vertex = mat4_mul_vec4(view_matrix, transformed_vertex);
 
       // transformed_vertex = vec3_rotate_x(transformed_vertex,
       // mesh.rotation.x); transformed_vertex =
@@ -172,8 +205,8 @@ void update(void) {
 
     vec3_t normal = vec3_norm(vector_ab, vector_ac);
     vec3_normalize(&normal);
-
-    vec3_t cam_ray = vec3_sub(camera_position, vector_a);
+    vec3_t origin = {0, 0, 0};
+    vec3_t cam_ray = vec3_sub(origin, vector_a);
     float allingment = vec3_dot(normal, cam_ray);
 
     if (cull_method == CULL_BACKFACE) {
@@ -218,14 +251,15 @@ void update(void) {
             },
         .color = triangle_color,
     };
-    array_push(triangle_to_render, projected_triangle);
+    if (num_triangles_to_render < MAX_TRIANGLE_PER_MESH) {
+      triangle_to_render[num_triangles_to_render++] = projected_triangle;
+    }
   };
 };
 void render(void) {
   SDL_RenderClear(renderer);
 
-  int N_TRIANGLES = array_length(triangle_to_render);
-  for (int i = 0; i < N_TRIANGLES; i++) {
+  for (int i = 0; i < num_triangles_to_render; i++) {
     triangle_t triangle = triangle_to_render[i];
 
     if (render_method == RENDER_WIRE || render_method == RENDER_WIRE_VERTEX ||
@@ -266,7 +300,6 @@ void render(void) {
     }
   }
 
-  array_free(triangle_to_render);
   render_color_buffer();
   clear_color_buffer(0xFF000000);
   clear_z_buffer();
