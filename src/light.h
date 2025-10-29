@@ -13,6 +13,8 @@ typedef struct {
 
 typedef struct {
   vec2_t post;
+  double r;
+  double phi;
   vec2_t dir;
   vec2_t trails[TRAIL_LENGTH];
   int trailCount;

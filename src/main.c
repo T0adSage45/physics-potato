@@ -88,13 +88,9 @@ void setup(void) {
   SagitariausA.mass = mass_SA;
   SagitariausA.radius = scaled_radius;
 
-  double polar_radius = sqrt(SagitariausA.post.x * SagitariausA.post.x) +
-                        (SagitariausA.post.y * SagitariausA.post.y);
-  double polar_phi = atan2(SagitariausA.post.y, SagitariausA.post.x);
-
-  lightRay.post = (vec2_t){polar_radius, polar_phi};
+  lightRay.post = (vec2_t){30, 350};
   lightRay.dir = (vec2_t){1, 0};
-  lightRay.trailCount = 0;
+  // lightRay.trailCount = 0;
 
   load_obj_mesh_data("./assets/drone.obj");
   // load_cube_mesh_data();
@@ -165,6 +161,16 @@ void update(void) {
 
   double light_speedPM = C / mpPixel;
   double step = light_speedPM;
+
+  vec2_t rel = {lightRay.post.x - SagitariausA.post.x,
+                lightRay.post.y - SagitariausA.post.y};
+
+  lightRay.r = hypot(rel.x, rel.y);
+  lightRay.phi = atan2(rel.y, rel.x);
+
+  if (lightRay.r < SagitariausA.radius) {
+    lightRay.dir = (vec2_t){0, 0};
+  }
 
   lightRay.post.x += lightRay.dir.x * step;
   lightRay.post.y += lightRay.dir.y * step;
@@ -339,10 +345,7 @@ void render(void) {
   // draw_circle(900, 400, 50, 0xFF006EFF);
 
   Init_blackHole(&SagitariausA, 0xFF006EFF);
-  for (int y = 0; y < window_height; y++) {
-    lightRay.post.y = 10 * y;
-    init_light_rays(&lightRay, 0xFFFFFFFF);
-  }
+  init_light_rays(&lightRay, 0xFFFFFFFF);
 
   render_color_buffer();
   clear_color_buffer(0xFF000000);

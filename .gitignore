@@ -1,2 +1,4 @@
 compile_commands.json
-./cache
+./.cache
+bun.lock
+node_modules

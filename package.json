@@ -1,0 +1,14 @@
+{
+  "name": "physics-potato",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon --watch . --ext c,h --exec \"make && make run && make clean\""
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
