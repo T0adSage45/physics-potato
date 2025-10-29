@@ -1,4 +1,5 @@
 #include "display.h"
+#include <math.h>
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
@@ -73,6 +74,63 @@ void draw_rect(int x, int y, int width, int height, color_t color) {
     }
   }
 };
+
+void draw_circle(int x, int y, int r, color_t color) {
+  int x0 = 0;
+  int y0 = r;
+  int d0 = 3 - (2 * r);
+
+  while (x0 <= y0) {
+    if (d0 < 0) {
+      d0 = d0 + (4 * x0) + 6;
+    } else {
+      d0 = d0 + (4 * (x0 - y0)) + 10;
+      y0 = y0 - 1;
+    }
+    x0 = x0 + 1;
+    draw_pixel(x + x0, y + y0, color);
+    draw_pixel(x - x0, y + y0, color);
+    draw_pixel(x + x0, y - y0, color);
+    draw_pixel(x - x0, y - y0, color);
+
+    draw_pixel(x + y0, y + x0, color);
+    draw_pixel(x - y0, y + x0, color);
+    draw_pixel(x + y0, y - x0, color);
+    draw_pixel(x - y0, y - x0, color);
+  }
+
+  // for (int i = 0; i < r; i++) {
+  //   int px = r * cos(i) + x;
+  //   int py = r * sin(i) + y;
+  //   draw_pixel(px, py, color);
+  // }
+}
+
+void fill_circle(int xc, int yc, double r, color_t color) {
+  int x = 0;
+  int y = r;
+  int d = 3 - 2 * r;
+
+  while (y >= x) {
+    draw_line(xc - x, yc - y, xc + x, yc - y, color);
+    draw_line(xc - y, yc - x, xc + y, yc - x, color);
+    draw_line(xc - y, yc + x, xc + y, yc + x, color);
+    draw_line(xc - x, yc + y, xc + x, yc + y, color);
+
+    if (x != y) {
+      draw_line(xc - y, yc - x, xc + y, yc - x, color);
+      draw_line(xc - y, yc + x, xc + y, yc + x, color);
+    }
+
+    x++;
+    if (d > 0) {
+      y--;
+      d += 4 * (x - y) + 10;
+    } else {
+      d += 4 * x + 6;
+    }
+  }
+}
 
 void draw_line(int x0, int y0, int x1, int y1, color_t color) {
 

@@ -7,10 +7,11 @@
   };
 
   outputs =
-    { self
-    , nixpkgs
-    , flake-utils
-    , ...
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -35,6 +36,8 @@
           shellHook = ''
             echo "🧪 Entering C development shell with SDL2 support!"
             echo "📦 SDL2 version: ${pkgs.SDL2.version}"
+            echo "🔍 Searching for SDL2 and glibc dev libraries in /nix/store..."
+            find /nix/store -maxdepth 1 -type d \( -name "*sdl2*-dev*" -o -name "*glibc*-dev*" \)
             export SHELL=$(which zsh)
             exec $SHELL
           '';

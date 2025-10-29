@@ -24,6 +24,8 @@ void draw_pixel(int x, int y, color_t color);
 void draw_grid(float grid_scale, color_t color);
 void draw_line(int x, int y, int x1, int y1, color_t color);
 void draw_rect(int x, int y, int width, int height, color_t color);
+void draw_circle(int x, int y, int r, color_t color);
+void fill_circle(int xc, int yc, double r, color_t color);
 void render_color_buffer();
 void clear_color_buffer(color_t color);
 void clear_z_buffer();
