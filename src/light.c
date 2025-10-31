@@ -13,7 +13,7 @@ void Init_blackHole(blackHole_t *bh, color_t color) {
   fill_circle((int)bh->post.x, (int)bh->post.y, (int)bh->radius, color);
 };
 
-void init_light_rays(lightRay_t *r, color_t color) {
+void init_light_rays(lightRay_t *r, blackHole_t *sagA, color_t color) {
   int x0 = r->post.x;
   int y0 = r->post.y;
   int x1 = (r->post.x - r->dir.x * 10); // 50 px long

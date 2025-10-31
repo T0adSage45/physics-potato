@@ -11,37 +11,20 @@
 #include "triangle.h"
 #include "upng.h"
 #include "vector.h"
-#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+///////////////
+///  DEFINE  //
+///////////////
+
 #define MAX_TRIANGLE_PER_MESH 10000
 
-triangle_t triangle_to_render[MAX_TRIANGLE_PER_MESH];
-int num_triangles_to_render = 0;
-
-const double G = 6.67430e-11;
-const double C = 299792458.0;
-double mass_SA = 8.54e36;
-vec2_t post_SA = {900, 350};
-double r_s;
-double mpPixel;
-double scaled_radius;
-
-lightRay_t lightRay;
-blackHole_t SagitariausA;
-
-bool is_running = false;
-int prev_frame_time = 0;
-float delta_time = 0;
-mat4_t proj_matrix;
-mat4_t world_matrix;
-mat4_t view_matrix;
-
-float grid_scale = 1;
-double PI = 3.14;
+///////////////
+/// ENUMRATS //
+///////////////
 
 enum cull_method {
   CULL_NONE,
@@ -57,11 +40,43 @@ enum render_method {
   RENDER_TEXTURED_TRIANGLE_WIRE,
 } render_method;
 
+///////////////
+/// CONSTANT //
+///////////////
+
+const double PI = 3.14;
+const float grid_scale = 1;
+
+/////////////////////
+/// INITIALIZATION //
+/////////////////////
+
+bool is_running = false;
+int prev_frame_time = 0;
+float delta_time = 0;
+
+float FOV = PI / 3;
+float ZNEAR = 0.1;
+float ZFAR = 100.0;
+
+mat4_t proj_matrix;
+mat4_t world_matrix;
+mat4_t view_matrix;
+
+triangle_t triangle_to_render[MAX_TRIANGLE_PER_MESH];
+int num_triangles_to_render = 0;
+
+///////////////
+///  SETUP   //
+///////////////
+
 void setup(void) {
   render_method = RENDER_FILL_TRIANGLE;
   cull_method = CULL_BACKFACE;
+
   color_buffer =
-      (uint32_t *)malloc(sizeof(uint32_t) * window_width * window_height);
+      (color_t *)malloc(sizeof(color_t) * window_width * window_height);
+
   if (!color_buffer) {
     fprintf(stderr, "Error Allocating color_buffer");
     return;
@@ -71,26 +86,13 @@ void setup(void) {
                                            SDL_TEXTUREACCESS_STREAMING,
                                            window_width, window_height);
   z_buffer = (float *)malloc(sizeof(float) * window_width * window_height);
-  float FOV = PI / 3;
+
   float ASPECT = (float)window_height / (float)window_width;
-  float ZNEAR = 0.1;
-  float ZFAR = 100.0;
   proj_matrix = mat4_perspective(FOV, ASPECT, ZNEAR, ZFAR);
 
   // mesh_texture = (color_t *)REDBRICK_TEXTURE;
   // texture_height = 64;
   // texture_width = 64;
-
-  r_s = (2.0 * G * mass_SA) / (C * C);
-  mpPixel = r_s / 100;
-  scaled_radius = r_s / mpPixel;
-  SagitariausA.post = post_SA;
-  SagitariausA.mass = mass_SA;
-  SagitariausA.radius = scaled_radius;
-
-  lightRay.post = (vec2_t){30, 350};
-  lightRay.dir = (vec2_t){1, 0};
-  // lightRay.trailCount = 0;
 
   load_obj_mesh_data("./assets/drone.obj");
   // load_cube_mesh_data();
@@ -158,22 +160,6 @@ void update(void) {
   prev_frame_time = SDL_GetTicks();
 
   num_triangles_to_render = 0;
-
-  double light_speedPM = C / mpPixel;
-  double step = light_speedPM;
-
-  vec2_t rel = {lightRay.post.x - SagitariausA.post.x,
-                lightRay.post.y - SagitariausA.post.y};
-
-  lightRay.r = hypot(rel.x, rel.y);
-  lightRay.phi = atan2(rel.y, rel.x);
-
-  if (lightRay.r < SagitariausA.radius) {
-    lightRay.dir = (vec2_t){0, 0};
-  }
-
-  lightRay.post.x += lightRay.dir.x * step;
-  lightRay.post.y += lightRay.dir.y * step;
 
   // mesh.rotation.x += 0.6 * delta_time;
   // mesh.rotation.y += 0.8 * delta_time;
@@ -299,53 +285,48 @@ void update(void) {
 void render(void) {
   SDL_RenderClear(renderer);
 
-  // for (int i = 0; i < num_triangles_to_render; i++) {
-  //   triangle_t triangle = triangle_to_render[i];
-  //
-  //   if (render_method == RENDER_WIRE || render_method == RENDER_WIRE_VERTEX
-  //   ||
-  //       render_method == RENDER_FILL_TRIANGLE_WIRE ||
-  //       render_method == RENDER_TEXTURED_TRIANGLE_WIRE) {
-  //     draw_triangle(triangle.points[0].x, triangle.points[0].y,
-  //                   triangle.points[1].x, triangle.points[1].y,
-  //                   triangle.points[2].x, triangle.points[2].y, 0xFFFFFFFF);
-  //   }
-  //   if (render_method == RENDER_TEXTURED_TRIANGLE ||
-  //       render_method == RENDER_TEXTURED_TRIANGLE_WIRE) {
-  //     draw_textured_triangle(
-  //         triangle.points[0].x, triangle.points[0].y, triangle.points[0].z,
-  //         triangle.points[0].w, triangle.tex_coords[0].u,
-  //         triangle.tex_coords[0].v, triangle.points[1].x,
-  //         triangle.points[1].y, triangle.points[1].z, triangle.points[1].w,
-  //         triangle.tex_coords[1].u, triangle.tex_coords[1].v,
-  //         triangle.points[2].x, triangle.points[2].y, triangle.points[2].z,
-  //         triangle.points[2].w, triangle.tex_coords[2].u,
-  //         triangle.tex_coords[2].v, mesh_texture);
-  //   }
-  //
-  //   if (render_method == RENDER_FILL_TRIANGLE ||
-  //       render_method == RENDER_FILL_TRIANGLE_WIRE) {
-  //     draw_filled_triangle(
-  //         triangle.points[0].x, triangle.points[0].y, triangle.points[0].z,
-  //         triangle.points[0].w, triangle.points[1].x, triangle.points[1].y,
-  //         triangle.points[1].z, triangle.points[1].w, triangle.points[2].x,
-  //         triangle.points[2].y, triangle.points[2].z, triangle.points[2].w,
-  //         triangle.color);
-  //   }
-  //   if (render_method == RENDER_WIRE_VERTEX) {
-  //     draw_rect(triangle.points[0].x - 3, triangle.points[0].y - 3, 6, 6,
-  //               0x0000FFFF);
-  //     draw_rect(triangle.points[1].x - 3, triangle.points[1].y - 3, 6, 6,
-  //               0x00FF00FF);
-  //     draw_rect(triangle.points[2].x - 3, triangle.points[2].y - 3, 6, 6,
-  //               0xFF0000FF);
-  //   }
-  // }
-  //
-  // draw_circle(900, 400, 50, 0xFF006EFF);
+  for (int i = 0; i < num_triangles_to_render; i++) {
+    triangle_t triangle = triangle_to_render[i];
 
-  Init_blackHole(&SagitariausA, 0xFF006EFF);
-  init_light_rays(&lightRay, 0xFFFFFFFF);
+    if (render_method == RENDER_WIRE || render_method == RENDER_WIRE_VERTEX ||
+        render_method == RENDER_FILL_TRIANGLE_WIRE ||
+        render_method == RENDER_TEXTURED_TRIANGLE_WIRE) {
+      draw_triangle(triangle.points[0].x, triangle.points[0].y,
+                    triangle.points[1].x, triangle.points[1].y,
+                    triangle.points[2].x, triangle.points[2].y, 0xFFFFFFFF);
+    }
+    if (render_method == RENDER_TEXTURED_TRIANGLE ||
+        render_method == RENDER_TEXTURED_TRIANGLE_WIRE) {
+      draw_textured_triangle(
+          triangle.points[0].x, triangle.points[0].y, triangle.points[0].z,
+          triangle.points[0].w, triangle.tex_coords[0].u,
+          triangle.tex_coords[0].v, triangle.points[1].x, triangle.points[1].y,
+          triangle.points[1].z, triangle.points[1].w, triangle.tex_coords[1].u,
+          triangle.tex_coords[1].v, triangle.points[2].x, triangle.points[2].y,
+          triangle.points[2].z, triangle.points[2].w, triangle.tex_coords[2].u,
+          triangle.tex_coords[2].v, mesh_texture);
+    }
+
+    if (render_method == RENDER_FILL_TRIANGLE ||
+        render_method == RENDER_FILL_TRIANGLE_WIRE) {
+      draw_filled_triangle(
+          triangle.points[0].x, triangle.points[0].y, triangle.points[0].z,
+          triangle.points[0].w, triangle.points[1].x, triangle.points[1].y,
+          triangle.points[1].z, triangle.points[1].w, triangle.points[2].x,
+          triangle.points[2].y, triangle.points[2].z, triangle.points[2].w,
+          triangle.color);
+    }
+    if (render_method == RENDER_WIRE_VERTEX) {
+      draw_rect(triangle.points[0].x - 3, triangle.points[0].y - 3, 6, 6,
+                0x0000FFFF);
+      draw_rect(triangle.points[1].x - 3, triangle.points[1].y - 3, 6, 6,
+                0x00FF00FF);
+      draw_rect(triangle.points[2].x - 3, triangle.points[2].y - 3, 6, 6,
+                0xFF0000FF);
+    }
+  }
+
+  draw_circle(900, 400, 50, 0xFF006EFF);
 
   render_color_buffer();
   clear_color_buffer(0xFF000000);

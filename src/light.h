@@ -15,6 +15,11 @@ typedef struct {
   vec2_t post;
   double r;
   double phi;
+  double dphi;
+  double dr;
+  double d2r;
+  double d2phi;
+  double step;
   vec2_t dir;
   vec2_t trails[TRAIL_LENGTH];
   int trailCount;
@@ -29,7 +34,7 @@ typedef struct {
 extern light_t light;
 
 void Init_blackHole(blackHole_t *bh, color_t color);
-void init_light_rays(lightRay_t *r, color_t color);
+void init_light_rays(lightRay_t *r, blackHole_t *sagA, color_t color);
 
 vec3_t light_to_vec3(light_t l);
 uint32_t light_apply_intensity(uint32_t original_color,

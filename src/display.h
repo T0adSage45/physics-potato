@@ -17,7 +17,7 @@ extern color_t *color_buffer; // declaration of first element of memory.
 extern float *z_buffer;
 extern int window_width;
 extern int window_height;
-extern float grid_scale;
+// extern float grid_scale;
 
 bool initalize_window(void);
 void draw_pixel(int x, int y, color_t color);
