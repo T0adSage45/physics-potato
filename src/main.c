@@ -1,6 +1,7 @@
 #include "SDL2/SDL_keycode.h"
 #include "SDL2/SDL_render.h"
 #include "SDL2/SDL_timer.h"
+#include "SagA.h"
 #include "array.h"
 #include "camera.h"
 #include "display.h"
@@ -11,6 +12,7 @@
 #include "triangle.h"
 #include "upng.h"
 #include "vector.h"
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -21,6 +23,7 @@
 ///////////////
 
 #define MAX_TRIANGLE_PER_MESH 10000
+#define RENDER_SCALE 1
 
 ///////////////
 /// ENUMRATS //
@@ -47,6 +50,11 @@ enum render_method {
 const double PI = 3.14;
 const float grid_scale = 1;
 
+const double c = 30;
+const double G = 6;
+const double mass = 4000;
+const double rs = (2 * G * mass) / (c * c);
+
 /////////////////////
 /// INITIALIZATION //
 /////////////////////
@@ -65,6 +73,12 @@ mat4_t view_matrix;
 
 triangle_t triangle_to_render[MAX_TRIANGLE_PER_MESH];
 int num_triangles_to_render = 0;
+
+blackHole_t SagA;
+lightRay_t Ray;
+
+lightRay_t rays[40];
+int num_rays = 0;
 
 ///////////////
 ///  SETUP   //
@@ -93,6 +107,21 @@ void setup(void) {
   // mesh_texture = (color_t *)REDBRICK_TEXTURE;
   // texture_height = 64;
   // texture_width = 64;
+
+  SagA.mass = mass;
+  SagA.post = (vec2_t){.x = (double)window_width * 0.5,
+                       .y = (double)window_height * 0.5};
+  SagA.radius = rs;
+
+  for (int y = 10; (y < window_height) &&
+                   (num_rays < (int)(sizeof(rays) / sizeof(rays[0])));
+       y += 20) {
+    printf("window_height: %d", window_height);
+    rays[num_rays].post = (vec2_t){20, y};
+    rays[num_rays].polar_cod = (vec2_t){0, 0};
+    rays[num_rays].dt = 0.00008;
+    num_rays++;
+  }
 
   load_obj_mesh_data("./assets/drone.obj");
   // load_cube_mesh_data();
@@ -160,6 +189,63 @@ void update(void) {
   prev_frame_time = SDL_GetTicks();
 
   num_triangles_to_render = 0;
+
+  for (int i = 0; i < (int)(sizeof(rays) / sizeof(rays[0])); i++) {
+
+    vec2_t rel_pos = vec2_sub(SagA.post, rays[i].post);
+    double vx = rel_pos.x;
+    double vy = rel_pos.y;
+    double r = hypot(vx, vy);
+    double phi = atan2(vy, vx);
+
+    // seed velocity :-> not supposed to be here
+    if (i < 0) {
+      rays[i].vel.x = 1 * cos(phi) + 0 * sin(phi);
+      rays[i].vel.y = (-1 * sin(phi) + 0 * cos(phi)) / r;
+    };
+    //
+
+    printf("rel pos; {%2f,%2f}\n", rel_pos.y, rel_pos.y);
+
+    double dr = rays[i].vel.x;
+    double dphi = rays[i].vel.y;
+
+    rays[i].polar_cod = (vec2_t){r, phi};
+
+    dr += r * dphi * dphi - (c * c * SagA.radius) / 2.0 * r * r;
+    dphi = -2.0 * dr * dphi / r;
+
+    rays[i].polar_cod.x += dr * delta_time * rays->dt;
+    rays[i].polar_cod.y += dphi * delta_time * rays->dt;
+
+    if (r < SagA.radius) {
+      // rays[i].vel = (vec2_t){0, 0};
+      continue;
+    }
+
+    if (rays[i].post.x > window_width - 50) {
+      return;
+    }
+
+    double d2r = 0.0 * 1e-1;
+    double d2phi = 0.0 * 1e-1;
+
+    rays[i].vel.x += d2r;
+    rays[i].vel.y += d2phi;
+
+    rays[i].polar_cod.x += rays[i].vel.x * 1e-1;
+    rays[i].polar_cod.y += rays[i].vel.y * 1e-1;
+
+    // POLAR CO-ORDINATE
+    // rays[i].polar_cod.x += r * rays->dt * rays[i].vel.x;
+    // rays[i].polar_cod.y += theta * rays->dt * rays[i].vel.y;
+
+    // CARTESIAN CO-ORDINATE
+    // rays[i].post.x += rays[i].vel.x;
+    // rays[i].post.y += rays[i].vel.y;
+    rays[i].post.x += rays[i].polar_cod.x * cos(rays[i].polar_cod.y) * rays->dt;
+    rays[i].post.y += rays[i].polar_cod.x * sin(rays[i].polar_cod.y) * rays->dt;
+  }
 
   // mesh.rotation.x += 0.6 * delta_time;
   // mesh.rotation.y += 0.8 * delta_time;
@@ -285,48 +371,57 @@ void update(void) {
 void render(void) {
   SDL_RenderClear(renderer);
 
-  for (int i = 0; i < num_triangles_to_render; i++) {
-    triangle_t triangle = triangle_to_render[i];
+  // for (int i = 0; i < num_triangles_to_render; i++) {
+  //   triangle_t triangle = triangle_to_render[i];
+  //
+  //   if (render_method == RENDER_WIRE || render_method == RENDER_WIRE_VERTEX
+  //   ||
+  //       render_method == RENDER_FILL_TRIANGLE_WIRE ||
+  //       render_method == RENDER_TEXTURED_TRIANGLE_WIRE) {
+  //     draw_triangle(triangle.points[0].x, triangle.points[0].y,
+  //                   triangle.points[1].x, triangle.points[1].y,
+  //                   triangle.points[2].x, triangle.points[2].y, 0xFFFFFFFF);
+  //   }
+  //   if (render_method == RENDER_TEXTURED_TRIANGLE ||
+  //       render_method == RENDER_TEXTURED_TRIANGLE_WIRE) {
+  //     draw_textured_triangle(
+  //         triangle.points[0].x, triangle.points[0].y, triangle.points[0].z,
+  //         triangle.points[0].w, triangle.tex_coords[0].u,
+  //         triangle.tex_coords[0].v, triangle.points[1].x,
+  //         triangle.points[1].y, triangle.points[1].z, triangle.points[1].w,
+  //         triangle.tex_coords[1].u, triangle.tex_coords[1].v,
+  //         triangle.points[2].x, triangle.points[2].y, triangle.points[2].z,
+  //         triangle.points[2].w, triangle.tex_coords[2].u,
+  //         triangle.tex_coords[2].v, mesh_texture);
+  //   }
+  //
+  //   if (render_method == RENDER_FILL_TRIANGLE ||
+  //       render_method == RENDER_FILL_TRIANGLE_WIRE) {
+  //     draw_filled_triangle(
+  //         triangle.points[0].x, triangle.points[0].y, triangle.points[0].z,
+  //         triangle.points[0].w, triangle.points[1].x, triangle.points[1].y,
+  //         triangle.points[1].z, triangle.points[1].w, triangle.points[2].x,
+  //         triangle.points[2].y, triangle.points[2].z, triangle.points[2].w,
+  //         triangle.color);
+  //   }
+  //   if (render_method == RENDER_WIRE_VERTEX) {
+  //     draw_rect(triangle.points[0].x - 3, triangle.points[0].y - 3, 6, 6,
+  //               0x0000FFFF);
+  //     draw_rect(triangle.points[1].x - 3, triangle.points[1].y - 3, 6, 6,
+  //               0x00FF00FF);
+  //     draw_rect(triangle.points[2].x - 3, triangle.points[2].y - 3, 6, 6,
+  //               0xFF0000FF);
+  //   }
+  // }
+  //
+  // draw_circle(900, 400, 50, 0xFF006EFF);
 
-    if (render_method == RENDER_WIRE || render_method == RENDER_WIRE_VERTEX ||
-        render_method == RENDER_FILL_TRIANGLE_WIRE ||
-        render_method == RENDER_TEXTURED_TRIANGLE_WIRE) {
-      draw_triangle(triangle.points[0].x, triangle.points[0].y,
-                    triangle.points[1].x, triangle.points[1].y,
-                    triangle.points[2].x, triangle.points[2].y, 0xFFFFFFFF);
-    }
-    if (render_method == RENDER_TEXTURED_TRIANGLE ||
-        render_method == RENDER_TEXTURED_TRIANGLE_WIRE) {
-      draw_textured_triangle(
-          triangle.points[0].x, triangle.points[0].y, triangle.points[0].z,
-          triangle.points[0].w, triangle.tex_coords[0].u,
-          triangle.tex_coords[0].v, triangle.points[1].x, triangle.points[1].y,
-          triangle.points[1].z, triangle.points[1].w, triangle.tex_coords[1].u,
-          triangle.tex_coords[1].v, triangle.points[2].x, triangle.points[2].y,
-          triangle.points[2].z, triangle.points[2].w, triangle.tex_coords[2].u,
-          triangle.tex_coords[2].v, mesh_texture);
-    }
+  Init_blackHole(&SagA, 0xFF006EFF);
 
-    if (render_method == RENDER_FILL_TRIANGLE ||
-        render_method == RENDER_FILL_TRIANGLE_WIRE) {
-      draw_filled_triangle(
-          triangle.points[0].x, triangle.points[0].y, triangle.points[0].z,
-          triangle.points[0].w, triangle.points[1].x, triangle.points[1].y,
-          triangle.points[1].z, triangle.points[1].w, triangle.points[2].x,
-          triangle.points[2].y, triangle.points[2].z, triangle.points[2].w,
-          triangle.color);
-    }
-    if (render_method == RENDER_WIRE_VERTEX) {
-      draw_rect(triangle.points[0].x - 3, triangle.points[0].y - 3, 6, 6,
-                0x0000FFFF);
-      draw_rect(triangle.points[1].x - 3, triangle.points[1].y - 3, 6, 6,
-                0x00FF00FF);
-      draw_rect(triangle.points[2].x - 3, triangle.points[2].y - 3, 6, 6,
-                0xFF0000FF);
-    }
+  for (int y = 0; y < (int)(sizeof(rays) / sizeof(rays[0])); y++) {
+    init_light_rays(&rays[y], 0xFF0000FF);
+    printf("rays[%d].post = (%.2f, %.2f)\n", y, rays[y].post.x, rays[y].post.y);
   }
-
-  draw_circle(900, 400, 50, 0xFF006EFF);
 
   render_color_buffer();
   clear_color_buffer(0xFF000000);

@@ -6,8 +6,8 @@ SDL_Renderer *renderer = NULL;
 SDL_Texture *color_buffer_texture = NULL;
 color_t *color_buffer = NULL; // declaration of first element of memory.
 float *z_buffer = NULL;
-int window_width = 800;
-int window_height = 600;
+int window_width = 1736;
+int window_height = 958;
 
 bool initalize_window(void) {
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {

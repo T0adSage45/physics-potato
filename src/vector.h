@@ -39,10 +39,13 @@ vec3_t vec3_norm(vec3_t a, vec3_t b);
 float vec2_dot(vec2_t a, vec2_t b);
 float vec3_dot(vec3_t a, vec3_t b);
 
+float vec2_mag(vec2_t a);
+
 vec3_t vec3_rotate_x(vec3_t v, float angle);
 vec3_t vec3_rotate_y(vec3_t v, float angle);
 vec3_t vec3_rotate_z(vec3_t v, float angle);
 
+void vec2_normalize(vec2_t *v);
 void vec3_normalize(vec3_t *v);
 
 vec4_t vec3_to_vec4(vec3_t v);

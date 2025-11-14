@@ -16,6 +16,17 @@ vec2_t vec2_sub(vec2_t a, vec2_t b) {
   return result;
 };
 
+void vec2_normalize(vec2_t *v) {
+  float len = sqrt(v->x * v->x + v->y * v->y);
+  v->x /= len;
+  v->y /= len;
+};
+
+float vec2_mag(vec2_t a) {
+  float mag = sqrt(a.x * a.x + a.y * a.y);
+  return mag;
+};
+
 vec3_t vec3_add(vec3_t a, vec3_t b) {
   vec3_t result = {.x = a.x + b.x, .y = a.y + b.y, .z = a.z + b.z};
   return result;
